@@ -1,0 +1,63 @@
+# Config for Codex CLI pointing at the e-infra proxy (https://llm.ai.e-infra.cz/).
+#
+# Key points (verified against the codex-rs sources in this tree):
+# - The provider is NOT the builtin "openai" one. `capabilities()` treats any
+#   provider whose name is exactly "OpenAI" (or an Azure host) as supporting
+#   server-side remote compaction v2, which your proxy cannot do — it responds
+#   with plain message items and Codex fails with "remote compaction v2 expected
+#   exactly one compaction output item". A custom-named provider gets
+#   RemoteCompactionSupport::Unsupported, i.e. LOCAL compaction (a plain
+#   summarization request against your model), which works against any
+#   Responses-API endpoint.
+# - requires_openai_auth = true is deliberate: it makes Codex reuse the existing
+#   ~/.codex/auth.json ("auth_mode": "apikey", "OPENAI_API_KEY": ...) and send
+#   it as `Authorization: Bearer`. Do NOT switch this to false + env_key,
+#   because `resolve_provider_auth` sends NO auth header for providers with
+#   requires_openai_auth=false (unless env_key/experimental_bearer_token is
+#   configured).
+# - `name` must not be "OpenAI" (case-insensitive) and the base_url must not
+#   match Azure markers, or remote compaction v2 would be re-enabled.
+# - The builtin provider sent a `version: <codex version>` header plus
+#   env-backed OpenAI-Organization/OpenAI-Project headers; they are mirrored
+#   below. (This source tree reports version 0.0.0; use your installed
+#   codex version string if the proxy validates the header.) Drop
+#   `http_headers` if the proxy rejects unknown headers.
+# - supports_websockets = false: use SSE. Only set true if the proxy speaks
+#   the Responses-over-WebSocket transport.
+
+# Select the custom provider. Remove `openai_base_url` from your old config —
+# it only customizes the BUILTIN openai provider and must not be combined
+# with this setup.
+model_provider = "e-infra"
+
+# Full model catalog: this file REPLACES the default model catalog, so every
+# slug you may use (-m ...) must be listed here. Each entry declares a real
+# context window (replace 512000 with the true limit of each model; adjust
+# auto_compact_token_limit to taste — it is clamped to 90% of the window when
+# model_auto_compact_token_limit_scope is "total", the default) and embeds the
+# standard Codex base instructions (kept in sync from prompt.md; the catalog
+# loader would otherwise refuse the entry without base instructions).
+#
+# Relative paths in config.toml are resolved against the config file's own
+# directory, so this works no matter where you copy this folder.
+model_catalog_json = "catalog/models.json"
+
+# Workaround for the proxy bug where the default reasoning-summary request
+# confuses the endpoint. `model_reasoning_summary = none` is the
+# config.toml form of your current `-c model_reasoning_summary=none`.
+# If you keep this line here, you can drop the -c flag from your command line.
+model_reasoning_summary = "none"
+
+# Optional: if you want local auto-compaction to start later/earlier than 90%
+# of the catalog window, uncomment and set an explicit token limit:
+# model_auto_compact_token_limit = 460000
+
+[model_providers.e-infra]
+name = "e-infra"
+base_url = "https://llm.ai.e-infra.cz/"
+wire_api = "responses"
+requires_openai_auth = true
+http_headers = { version = "0.0.0" }
+env_http_headers = { OpenAI-Organization = "OPENAI_ORGANIZATION", OpenAI-Project = "OPENAI_PROJECT" }
+supports_websockets = false
+supports_standalone_web_search = false
