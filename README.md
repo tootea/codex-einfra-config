@@ -8,9 +8,10 @@ Drop-in configuration for running Codex CLI against the e-infra proxy
 e-infra-config/
 ├── config.toml                    # merge into ~/.codex/config.toml (or copy the file next to config.toml)
 ├── catalog/
-│   ├── models.json                # model catalog: context windows + embedded base instructions
+│   ├── models.toml                # template: [defaults] + one [[model]] section per model
+│   ├── models.json                # generated model catalog: context windows + embedded base instructions
 │   └── base_instructions.md       # last-synced copy of prompt.md (source of truth for diffs)
-├── sync_base_instructions.py      # keeps base_instructions in models.json in sync with prompt.md
+├── generate_models.py             # generates models.json from models.toml + prompt.md
 └── README.md
 ```
 
@@ -110,28 +111,40 @@ To re-sync after updating the Codex source tree (or pulling a new Codex
 release), run:
 
 ```sh
-./sync_base_instructions.py            # update models.json from prompt.md
-./sync_base_instructions.py --check    # exit 1 if models.json is stale (CI/reminder)
-./sync_base_instructions.py --source /path/to/prompt.md --target /path/to/models.json
+./generate_models.py            # regenerate models.json from models.toml + prompt.md
+./generate_models.py --check    # exit 1 if models.json is stale (CI/reminder)
+./generate_models.py --source /path/to/prompt.md --target /path/to/models.json
+./generate_models.py --template /path/to/models.toml   # alternate template
 ```
 
-Source resolution order: `--source`, then
+Source resolution order for the prompt: `--source`, then
 `<parent-of-this-folder>/codex-rs/models-manager/prompt.md` (works when this
 folder lives inside a Codex source checkout), then
 `catalog/base_instructions.md` (the last synced copy, which also lets you
-hand-edit and re-apply a modified prompt).
+hand-edit and re-apply a modified prompt). On every run,
+`catalog/base_instructions.md` is rewritten as the last-synced copy.
 
 ## Model list
 
 The catalog **replaces** the default model catalog entirely. Every slug you
 might select with `-m` (and a `review_model`, if you ever configure one) must
 be listed in `catalog/models.json`, otherwise it silently falls back to
-272K "fallback metadata" and compacts early again. Add new entries by copying
-one of the existing ones; keep the slug exactly as the proxy expects it.
+272K "fallback metadata" and compacts early again.
+
+`catalog/models.json` is **generated** from the `catalog/models.toml`
+template: a shared `[defaults]` table plus one `[[model]]` section per model
+(dotted slugs are safe as string values; per-model keys override
+`[defaults]` key-by-key, and `display_name`/`description` are derived from
+the slug when omitted). To add a model, append one `[[model]]` section (a
+bare `slug` is enough for pure defaults), keep the slug exactly as the proxy
+expects it, then run `./generate_models.py`. Commit the regenerated
+`models.json` (and the refreshed `catalog/base_instructions.md`) together
+with the template change; `./generate_models.py --check` fails in CI if the
+generated catalog is stale.
 
 `visibility = "none"` keeps the entries out of the model picker while still
-being usable via `-m`. Change to `"list"` if you want them selectable in the
-TUI.
+being usable via `-m`. Change it to `"list"` (in `[defaults]` or per model)
+if you want them selectable in the TUI.
 
 ## Headers
 

@@ -1,0 +1,50 @@
+# Model catalog template for generate_models.py.
+#
+#   ./generate_models.py            # regenerate catalog/models.json from here
+#   ./generate_models.py --check    # exit 1 if models.json is stale (CI/reminder)
+#
+# Every [[model]] entry is merged over [defaults] key-by-key (per-model values
+# win). Adding a model is one new [[model]] section -- a bare "slug" is enough
+# when the model uses the shared defaults. Slug values are strings, so dots
+# and other special characters are safe (table-name key separators don't apply
+# to string values).
+#
+# Known keys (anything else is a typo and fails the generator):
+#   slug, display_name, description, shell_type, visibility, supported_in_api,
+#   priority, supported_reasoning_levels, support_verbosity, web_search_tool_type,
+#   truncation_policy, context_window, max_context_window, auto_compact_token_limit,
+#   effective_context_window_percent
+
+[defaults]
+shell_type = "unified_exec"
+visibility = "none"
+supported_in_api = true
+priority = 99
+supported_reasoning_levels = []
+support_verbosity = false
+web_search_tool_type = "text"
+truncation_policy = { mode = "bytes", limit = 10000 }
+context_window = 512000
+max_context_window = 512000
+auto_compact_token_limit = 460000
+effective_context_window_percent = 95
+
+[[model]]
+slug = "qwen3.8-27b"
+display_name = "Qwen 3.8 27B"
+description = "Local Qwen 3.8 27B model (e-infra)."
+
+[[model]]
+slug = "gemma4"
+display_name = "Gemma 4"
+description = "Gemma 4 model (e-infra)."
+
+[[model]]
+slug = "glm"
+display_name = "GLM"
+description = "GLM model (e-infra)."
+
+[[model]]
+slug = "deepseek-thinking"
+display_name = "DeepSeek (thinking)"
+description = "DeepSeek thinking model (e-infra)."
