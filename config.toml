@@ -34,10 +34,6 @@ model_provider = "e-infra"
 # directory, so this works no matter where you copy this folder.
 model_catalog_json = "catalog/models.json"
 
-# Workaround for a proxy bug where the default reasoning-summary request
-# confuses the endpoint.
-model_reasoning_summary = "none"
-
 [model_providers.e-infra]
 name = "e-infra"
 base_url = "https://llm.ai.e-infra.cz/"
