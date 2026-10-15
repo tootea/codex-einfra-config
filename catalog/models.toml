@@ -11,7 +11,8 @@
 #
 # Known keys (anything else is a typo and fails the generator):
 #   slug, display_name, description, shell_type, visibility, supported_in_api,
-#   priority, supported_reasoning_levels, support_verbosity, web_search_tool_type,
+#   priority, supported_reasoning_levels, support_verbosity, supports_parallel_tool_calls,
+#   supports_reasoning_summary_parameter, experimental_supported_tools, web_search_tool_type,
 #   truncation_policy, context_window, max_context_window, auto_compact_token_limit,
 #   effective_context_window_percent
 
@@ -22,17 +23,25 @@ supported_in_api = true
 priority = 99
 supported_reasoning_levels = []
 support_verbosity = false
+supports_parallel_tool_calls = false
+supports_reasoning_summary_parameter = false
+experimental_supported_tools = []
 web_search_tool_type = "text"
 truncation_policy = { mode = "bytes", limit = 10000 }
-context_window = 512000
-max_context_window = 512000
-auto_compact_token_limit = 460000
-effective_context_window_percent = 95
+context_window = 256000
+max_context_window = 256000
+auto_compact_token_limit = 230000
+effective_context_window_percent = 90
 
 [[model]]
 slug = "qwen3.8-27b"
 display_name = "Qwen 3.8 27B"
-description = "Local Qwen 3.8 27B model (e-infra)."
+description = "Qwen 3.8 27B model (e-infra)."
+
+[[model]]
+slug = "qwen3.8-flash-next"
+display_name = "Qwen 3.8 Flash Next"
+description = "Qwen 3.8 Flash Next model (e-infra)."
 
 [[model]]
 slug = "gemma4"
@@ -42,9 +51,13 @@ description = "Gemma 4 model (e-infra)."
 [[model]]
 slug = "glm"
 display_name = "GLM"
-description = "GLM model (e-infra)."
+description = "Latest GLM model (e-infra)."
+auto_compact_token_limit = 195000
 
 [[model]]
 slug = "deepseek-thinking"
 display_name = "DeepSeek (thinking)"
-description = "DeepSeek thinking model (e-infra)."
+description = "Latest DeepSeek thinking model (e-infra)."
+context_window = 1000000
+max_context_window = 1000000
+auto_compact_token_limit = 900000
